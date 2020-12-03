@@ -28,17 +28,20 @@ namespace XUnitTestProject1
             });
             addressBook.People.Add(person);
 
-            using var memstream = new MemoryStream();
-            using (var googleStream = new Google.Protobuf.CodedOutputStream(memstream, leaveOpen: true))
-            {
-                addressBook.WriteTo(googleStream);
-            }
+            var serialized = Serialize(addressBook);
 
-            memstream.Seek(0, SeekOrigin.Begin);
-
-            var addressBookParsed = AddressBook.Parser.ParseFrom(memstream.ToArray());
+            var addressBookParsed = AddressBook.Parser.ParseFrom(serialized);
 
             Assert.True(addressBook.Equals(addressBookParsed));
+        }
+
+        private static byte[] Serialize(AddressBook addressBook)
+        {
+            using var memstream = new MemoryStream();
+            using var googleStream = new Google.Protobuf.CodedOutputStream(memstream);
+            addressBook.WriteTo(googleStream);
+
+            return memstream.ToArray();
         }
     }
 }
